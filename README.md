@@ -1,172 +1,699 @@
-# Support AI — Intelligent Triage & TAM Account Health
+# Support AI — Intelligent Ticket Triage & TAM Account Health
 
-Production-oriented implementation for the Zycus AI Engineer assessment. The solution uses **only the supplied synthetic tickets, account summaries, and knowledge base**.
+> A production-oriented AI support system for intelligent support-ticket triage and Technical Account Manager (TAM) account health analysis.
 
-## What is included
+Built for the **Zycus AI Engineer Assessment**, this project combines knowledge-base retrieval, structured LLM generation, deterministic business logic, schema validation, automated evaluation, and production-oriented engineering practices.
 
-- **Task 1:** raw-ticket triage with local KB retrieval, optional Gemini structured generation, schema validation, evidence checks, and a deterministic offline fallback.
-- **Task 2:** deterministic 90-day TAM account brief with account-health signals and direct ticket quotes for ticket-level churn/escalation flags.
-- **Task 3:** 6 evaluation cases for each task, including adversarial cases, per-case 0–1 scores, and a JSON report.
-- **Task 4:** production design note covering failure modes, latency/quality, data sensitivity, and scaling.
-- **Bonus:** GitHub Actions evaluation on every push/PR (+2) and prompt version tracking/changelog (+2).
+The core design principle is simple:
 
-## Architecture
+> **Use AI where contextual reasoning adds value, and deterministic logic where reproducibility and explainability matter most.**
+
+---
+
+## Overview
+
+The system addresses two core support-engineering workflows.
+
+### Task 1 — Intelligent Ticket Triage
+
+Given a raw support ticket, the system:
+
+- Validates and normalizes the input.
+- Retrieves relevant evidence from the supplied product knowledge base.
+- Uses structured Gemini generation when an API key is configured.
+- Validates generated output using Pydantic schemas.
+- Verifies that known-issue citations exist in the retrieved evidence.
+- Falls back to deterministic triage when an external LLM is unavailable.
+- Produces a structured triage result containing:
+  - Product area
+  - Category
+  - Urgency
+  - Decision rationale
+  - Known issue detection
+  - Responder team
+  - Draft customer response
+
+Historical ticket labels are intentionally **not used as Task 1 classification inputs**.
+
+### Task 2 — TAM Account Health Brief
+
+Given an account ID, the system generates a deterministic account brief by combining:
+
+- Customer account information
+- Recent ticket history
+- Dataset-relative 90-day activity
+- Account health
+- Usage trends
+- License utilization
+- Renewal timing
+- P1 incidents
+- Open support issues
+- Escalation notes
+- Customer satisfaction signals
+- Churn and escalation indicators
+
+The account analysis is deterministic so that the same dataset and input produce reproducible results.
+
+---
+
+# Key Capabilities
+
+- Knowledge-base-grounded ticket triage
+- Local TF-IDF retrieval over the supplied documentation
+- Optional Gemini-powered structured generation
+- Deterministic offline fallback
+- Pydantic schema validation
+- Knowledge-base citation validation
+- Input validation and normalization
+- Sensitive-data redaction before external LLM calls
+- Deterministic TAM account health analysis
+- Dataset-relative time windows for reproducibility
+- Command-line interface
+- REST API
+- Automated testing
+- Evaluation harness with adversarial cases
+- GitHub Actions CI
+- Versioned prompts for controlled prompt iteration
+
+---
+
+# Architecture
+
+## Task 1 — Ticket Triage
 
 ```text
-Task 1
-Raw text / {subject, body}
+Raw Ticket Input
+(Text / Subject + Body / Ticket ID)
         |
         v
-Input validation + normalization
+Input Validation & Normalization
         |
         v
-Local TF-IDF retrieval over supplied KB
+Knowledge Base Retrieval
+(Local TF-IDF)
         |
-        +------------------------------+
-        |                              |
-        v                              v
-Gemini structured output        Deterministic fallback
-        |                              |
-        +--------------+---------------+
-                       v
-               Pydantic validation
+        v
+Retrieved Evidence
+        |
+        +-----------------------------+
+        |                             |
+        v                             v
+Structured LLM Generation      Deterministic Fallback
+(Optional Gemini)
+        |                             |
+        +--------------+--------------+
                        |
                        v
-                TriageResult
-
-Task 2
-Account ID
-   |
-   +--> accounts.json
-   |
-   +--> tickets.json -- last 90 days relative to dataset reference date
-   |
-   v
-Deterministic health/risk signals + direct ticket evidence
-   |
-   v
-AccountBrief
+              Pydantic Validation
+                       |
+                       v
+        Knowledge Base Citation Check
+                       |
+                       v
+                 TriageResult
 ```
 
-The retrieval corpus is the provided `knowledge-base/` only. Documents are split on horizontal rules and preserve document/section metadata, following `DATA_SCHEMA.md`.
+### Data Flow
 
-## Setup
+1. Raw ticket content is validated and normalized.
+2. Relevant knowledge-base sections are retrieved locally.
+3. When Gemini is configured, the ticket and retrieved evidence are sent to the model.
+4. The model is constrained to return structured JSON.
+5. The response is validated against the `TriageResult` schema.
+6. Any known-issue citation must match a document and section present in the retrieved evidence.
+7. If the LLM is unavailable or not configured, deterministic fallback logic produces a valid result.
 
-Requires Python 3.11+.
+---
+
+## Task 2 — TAM Account Health
+
+```text
+Account ID
+    |
+    +-------> accounts.json
+    |
+    +-------> tickets.json
+                  |
+                  v
+       Dataset-relative 90-Day Window
+                  |
+                  v
+        Deterministic Risk Signals
+                  |
+                  +-----------------------+
+                  |                       |
+                  v                       v
+          Account Health            Ticket Signals
+          Usage & Renewal           Escalations
+          CSAT / NPS                P1 Incidents
+          Open Tickets              Churn Indicators
+                  |
+                  v
+              AccountBrief
+```
+
+The default reference date is derived from the latest supplied ticket timestamp, ensuring that the analysis remains reproducible regardless of when the evaluator runs the repository.
+
+---
+
+# Project Structure
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── eval.yml
+│
+├── data/
+│   ├── accounts.json
+│   └── tickets.json
+│
+├── docs/
+│   └── design-note.md
+│
+├── knowledge-base/
+│   ├── billing/
+│   ├── onboarding/
+│   ├── products/
+│   └── troubleshooting/
+│
+├── prompts/
+│   ├── README.md
+│   └── triage_v1.md
+│
+├── scripts/
+│   └── run_eval.py
+│
+├── src/
+│   └── support_ai/
+│       ├── api.py
+│       ├── cli.py
+│       ├── config.py
+│       ├── data.py
+│       ├── eval.py
+│       ├── health.py
+│       ├── llm.py
+│       ├── models.py
+│       ├── retrieval.py
+│       ├── triage.py
+│       └── prompts/
+│
+├── tests/
+│
+├── DATA_SCHEMA.md
+├── README.md
+├── requirements.txt
+├── pyproject.toml
+└── .env.example
+```
+
+---
+
+# Technology Stack
+
+| Area | Technology |
+|---|---|
+| Language | Python 3.11+ |
+| API | FastAPI |
+| Validation | Pydantic |
+| LLM | Google Gemini (optional) |
+| Retrieval | Local TF-IDF |
+| Testing | Pytest |
+| CI | GitHub Actions |
+| Configuration | Environment Variables |
+| Packaging | Python package with CLI entry point |
+
+The dependency footprint is intentionally kept small. A vector database or agent framework would add unnecessary complexity for a knowledge base of this size.
+
+---
+
+# Setup
+
+## Requirements
+
+- Python 3.11 or newer
+- pip
+- Optional: Gemini API key for live LLM-powered triage
+
+## Create a Virtual Environment
+
+### Windows
 
 ```bash
 python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
+.venv\Scripts\activate
+```
+
+### macOS / Linux
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+## Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-For live LLM mode:
+---
+
+# Configuration
+
+Copy the environment template.
+
+### Windows
 
 ```bash
 copy .env.example .env
-# macOS/Linux: cp .env.example .env
-# Set GEMINI_API_KEY in .env
 ```
 
-Environment variables:
+### macOS / Linux
 
-- `GEMINI_API_KEY` — required only for live Task 1 LLM mode.
-- `GEMINI_MODEL` — optional; defaults to `gemini-2.5-flash`.
-- `SUPPORT_AI_AS_OF` — optional ISO-8601 reference timestamp for reproducible Task 2 windows. If omitted, the latest supplied ticket timestamp is used.
+```bash
+cp .env.example .env
+```
 
-Without `GEMINI_API_KEY`, Task 1 runs in deterministic fallback mode so the project can be evaluated without external credentials.
+Configure the environment variables:
 
-## Single entry point
+```env
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `GEMINI_API_KEY` | No | Enables live Gemini-powered ticket triage |
+| `GEMINI_MODEL` | No | Gemini model name |
+| `SUPPORT_AI_AS_OF` | No | ISO-8601 reference timestamp for reproducible account analysis |
+
+If `GEMINI_API_KEY` is not configured, Task 1 continues to work using deterministic fallback logic.
+
+No API credentials should be committed to source control.
+
+---
+
+# Usage
+
+## Ticket Triage
+
+### Triage a Supplied Ticket
 
 ```bash
 support-ai triage --ticket-id TKT-10050
+```
+
+### Triage Raw Text
+
+```bash
 support-ai triage --text "We have a critical outage affecting all users."
-support-ai triage --json '{"subject":"How do I configure SSO?","body":"Please help."}'
+```
+
+### Triage Structured Input
+
+```bash
+support-ai triage --json "{\"subject\":\"How do I configure SSO?\",\"body\":\"Please help.\"}"
+```
+
+---
+
+## TAM Account Health Brief
+
+```bash
 support-ai account ACC-7397
+```
+
+The account pipeline:
+
+1. Loads the account.
+2. Joins relevant ticket history.
+3. Applies the dataset-relative 90-day window.
+4. Computes deterministic health and risk signals.
+5. Produces an actionable account brief.
+
+---
+
+# Evaluation
+
+Run the complete test suite:
+
+```bash
+pytest -q
+```
+
+Run the evaluation harness:
+
+```bash
+python scripts/run_eval.py
+```
+
+The evaluation report is written to:
+
+```text
+eval_report.json
+```
+
+The project also supports:
+
+```bash
 support-ai eval
 ```
 
-The `triage` command accepts either free text, JSON containing `subject`/`body`, or one of the supplied dataset ticket IDs. Historical category, urgency, and product-area labels are not used as triage inputs.
+The evaluation includes:
 
-## REST API
+- Normal cases
+- Knowledge-base-grounded cases
+- Urgency classification
+- Adversarial input
+- Deterministic fallback behavior
+- Account risk analysis
+- 90-day ticket windows
+- Escalation signals
+- Renewal risk
+- Missing and no-ticket scenarios
+
+Each evaluation produces:
+
+- Per-case results
+- Pass/fail checks
+- Quality scores from `0` to `1`
+- Aggregate task scores
+- Overall evaluation score
+
+---
+
+# REST API
+
+Start the API server:
 
 ```bash
 uvicorn support_ai.api:app --host 0.0.0.0 --port 8000
 ```
 
-Endpoints:
+## Endpoints
 
-- `GET /health`
-- `POST /triage` with either `{ "text": "..." }` or `{ "subject": "...", "body": "..." }`
-- `GET /accounts/{account_id}/brief`
+### Health Check
 
-The API validates request size and shape with Pydantic and rejects unknown input fields.
-
-## Sample Task 1
-
-```bash
-support-ai triage --ticket-id TKT-10050
+```text
+GET /health
 ```
 
-The raw ticket text describes a scope error. The supplied authentication/SSO knowledge base contains a matching `403 Forbidden: insufficient_scope` reference, so the fallback or LLM path can surface that evidence without copying the historical ticket labels.
+### Ticket Triage
 
-## Sample Task 2
-
-```bash
-support-ai account ACC-7397
+```text
+POST /triage
 ```
 
-The account pipeline joins by `account_id`, filters ticket history to the last 90 days, and uses deterministic signals for usage, renewal timing, escalation notes, P1 history, NPS, open tickets, and ticket-level escalation/churn evidence.
+Example:
 
-The default reference date is the latest supplied ticket timestamp. This keeps the historical assessment reproducible instead of making the 90-day window depend on the day the evaluator runs the repository.
+```json
+{
+  "text": "Our production users cannot access the application."
+}
+```
 
-## Evaluation
+Or:
+
+```json
+{
+  "subject": "Production outage",
+  "body": "All users are unable to access the application."
+}
+```
+
+### Account Health Brief
+
+```text
+GET /accounts/{account_id}/brief
+```
+
+Example:
+
+```text
+GET /accounts/ACC-7397/brief
+```
+
+The API validates request structure and rejects unsupported fields.
+
+---
+
+# Knowledge Base Retrieval
+
+The retrieval corpus consists exclusively of the supplied:
+
+```text
+knowledge-base/
+```
+
+documents.
+
+Documents preserve:
+
+- Document path
+- Section metadata
+- Evidence text
+
+The current implementation uses TF-IDF retrieval because the supplied knowledge base is small and does not justify vector-database infrastructure.
+
+The retrieval layer is isolated behind a dedicated module, allowing future upgrades such as:
+
+- Embedding-based retrieval
+- Hybrid retrieval
+- Cross-encoder reranking
+- Semantic search
+- Persistent indexes
+
+without requiring major changes to the core application architecture.
+
+---
+
+# LLM Reliability & Validation
+
+The Gemini integration is designed defensively and includes:
+
+- Structured JSON responses
+- Pydantic schema validation
+- Deterministic generation settings
+- Request timeout
+- Retry handling
+- Empty-response detection
+- Invalid-output detection
+- Knowledge-base citation validation
+- Deterministic fallback
+
+A generated known issue cannot cite arbitrary knowledge-base content.
+
+If the model claims that a known issue was found, the cited:
+
+```text
+document + section
+```
+
+must exist in the retrieved evidence.
+
+Unsupported citations are rejected rather than silently returned.
+
+---
+
+# Security & Privacy
+
+The project follows production-oriented security practices appropriate for the assessment.
+
+- API credentials are loaded from environment variables.
+- `.env` files are excluded from Git.
+- `.env.example` contains placeholders only.
+- Customer text is treated as untrusted input.
+- Embedded instructions inside ticket content are not treated as system instructions.
+- Common identifiers are redacted before data crosses the external LLM boundary.
+- Common email addresses and phone numbers are redacted.
+- Secret-like values are redacted.
+- Input size and structure are validated by the API.
+
+The redaction implementation covers common patterns and is not a replacement for enterprise-grade DLP tooling.
+
+---
+
+# Testing Strategy
+
+Run all tests:
 
 ```bash
 pytest -q
-python scripts/run_eval.py
 ```
 
-The evaluation report is written to `eval_report.json` and contains per-case pass/fail, passed/total checks, quality scores from 0–1, errors, and aggregate task scores.
+The test suite covers important behavior including:
 
-The harness deliberately passes only raw `subject`/`body` into Task 1, and includes a prompt-injection adversarial case plus a true no-ticket account case for Task 2.
+- Input validation
+- Ticket loading
+- Account loading
+- Knowledge-base retrieval
+- Triage logic
+- Known issue matching
+- API request handling
+- LLM output validation
+- Deterministic fallback behavior
+- Account health analysis
+- Evaluation requirements
 
-## Security and reliability
+Tests focus on validating observable behavior and important failure paths rather than simply maximizing coverage.
 
-- No API credentials are committed; `.env` is ignored and `.env.example` contains placeholders only.
-- Customer text is treated as untrusted data in the LLM prompt; embedded instructions are not followed.
-- Common identifiers, email addresses, phone numbers, and secret-like values are redacted before the Gemini boundary.
-- Gemini calls use structured JSON output, a 30-second client timeout, one retry, and post-validation of the cited KB document/section.
-- LLM reasoning is constrained to a short decision rationale rather than requesting hidden chain-of-thought.
-- The deterministic fallback never copies historical category/urgency/product-area labels.
-- Account joins tolerate missing `account_id` references as required by the supplied schema.
+---
 
-## Engineering decisions
+# Engineering Decisions
 
-1. **Local retrieval first.** The supplied KB has nine documents, so a local TF-IDF index is sufficient and avoids unnecessary vector-database infrastructure. The retrieval interface is isolated so embeddings/reranking can be introduced later.
-2. **LLM only where it adds value.** Task 1 uses an LLM for contextual classification, reasoning, routing, and response drafting. Task 2 is deterministic because the assignment requires repeatable output for the same input.
-3. **Evidence over historical labels.** Existing ticket labels are treated as historical metadata, not ground truth. Task 1 evaluation strips them from the input.
-4. **Dataset-relative time.** The supplied data is historical. The default account-health reference is the latest supplied ticket timestamp, with an explicit environment override for reproducibility.
-5. **Fail closed on unsupported KB citations.** A generated known issue must point to a document/section actually supplied to the model.
+## 1. Retrieval Before Generation
 
-## Limitations
+Knowledge-base evidence is retrieved before LLM generation.
 
-- TF-IDF retrieval is lexical and can miss semantically equivalent wording; embeddings/reranking would be the next retrieval upgrade.
-- The live LLM path requires Gemini availability and quota; the deterministic fallback is intentionally less expressive.
-- PII redaction covers common patterns, not every possible sensitive-data format. A production deployment should use an enterprise DLP/redaction service and provider retention controls.
-- The TAM summarizer is deterministic and template-driven rather than generative, prioritizing reproducibility over prose quality.
-- Production deployment would add centralized logs/metrics, persistent indexing, rate limiting, authentication, and distributed tracing.
+This reduces hallucination risk and provides relevant product context for classification and response generation.
 
-## Loom walkthrough — recommended 5–6 minutes
+## 2. Local TF-IDF Instead of a Vector Database
 
-1. **0:00–0:45:** Explain the assessment requirements and repository structure.
-2. **0:45–2:00:** Walk through Task 1: raw input, retrieval, structured output, validation, and sample ticket.
-3. **2:00–3:15:** Walk through Task 2: account join, 90-day window, deterministic risk rules, and direct ticket quotes.
-4. **3:15–4:30:** Run the evaluation harness and show the JSON report.
-5. **4:30–5:30:** Explain retrieval, determinism, security, and production failure modes.
-6. **5:30–6:00:** Show clean setup/entry point and summarize limitations/future work.
+The supplied knowledge base contains a small number of documents.
 
-## Design note
+Introducing a vector database would increase:
 
-See [`docs/design-note.md`](docs/design-note.md).
+- Operational complexity
+- Dependencies
+- Infrastructure requirements
+
+without providing proportional value at this scale.
+
+A local TF-IDF index is simpler, reproducible, and sufficient for the supplied dataset.
+
+## 3. LLMs Only Where They Add Value
+
+Task 1 benefits from contextual reasoning for:
+
+- Classification
+- Routing
+- Evidence interpretation
+- Response drafting
+
+Task 2 is deterministic because account-health analysis benefits from:
+
+- Reproducibility
+- Explainability
+- Consistent risk signals
+
+## 4. Historical Labels Are Not Treated as Ground Truth
+
+Historical ticket fields such as:
+
+- Category
+- Urgency
+- Product area
+
+are excluded from Task 1 classification inputs.
+
+The system evaluates raw ticket content independently.
+
+## 5. Dataset-Relative Time
+
+The account-health pipeline uses the supplied dataset as its temporal reference.
+
+By default, the latest supplied ticket timestamp becomes the reference point for the 90-day analysis window.
+
+This avoids results changing simply because the evaluator runs the project on a different date.
+
+## 6. Fail Closed on Unsupported Evidence
+
+Generated known-issue citations are validated against retrieved evidence.
+
+Unsupported citations are rejected rather than silently returned.
+
+---
+
+# Production Considerations
+
+The current implementation is intentionally lightweight but designed to evolve.
+
+A larger production deployment could add:
+
+- Persistent retrieval indexes
+- Embedding-based retrieval
+- Reranking
+- Centralized logging
+- Metrics and alerting
+- Distributed tracing
+- Rate limiting
+- Authentication and authorization
+- Background processing
+- Provider fallback
+- Enterprise DLP integration
+- Evaluation dashboards
+- Model monitoring
+
+The architecture keeps these future concerns separate from the core business logic.
+
+---
+
+# Limitations
+
+- TF-IDF retrieval is lexical and may miss semantically equivalent language.
+- Gemini availability and quota affect live LLM triage.
+- The deterministic fallback is intentionally less expressive than the LLM path.
+- PII redaction covers common patterns rather than every possible sensitive-data format.
+- The TAM summarizer is deterministic and template-driven.
+- Production authentication and rate limiting are not included.
+- Observability is intentionally lightweight for this assessment implementation.
+
+---
+
+# Design Documentation
+
+Detailed architecture and production considerations are available in:
+
+```text
+docs/design-note.md
+```
+
+The design note covers:
+
+- Failure modes
+- Latency and quality trade-offs
+- Data sensitivity
+- Scaling considerations
+- Reliability decisions
+
+---
+
+# Continuous Integration
+
+GitHub Actions runs the evaluation workflow on:
+
+- Pushes
+- Pull requests
+
+This provides automated regression detection for the project's evaluation suite.
+
+---
+
+# Design Principles
+
+The implementation prioritizes:
+
+```text
+Correctness
+    ↓
+Reproducibility
+    ↓
+Maintainability
+    ↓
+Evidence-Grounded AI Behavior
+    ↓
+Simple Architecture
+    ↓
+Production Extensibility
+```
+
+The objective is not to add unnecessary AI infrastructure, but to build the simplest system that reliably satisfies the requirements while remaining straightforward to maintain and extend.
+
+---
+
+## Assessment Scope
+
+This repository was created for the **Zycus AI Engineer Assessment** and uses the supplied synthetic support tickets, customer account summaries, and product knowledge base.
