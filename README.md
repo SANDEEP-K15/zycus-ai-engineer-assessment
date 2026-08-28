@@ -694,6 +694,3 @@ The objective is not to add unnecessary AI infrastructure, but to build the simp
 
 ---
 
-## Assessment Scope
-
-This repository was created for the **Zycus AI Engineer Assessment** and uses the supplied synthetic support tickets, customer account summaries, and product knowledge base.
