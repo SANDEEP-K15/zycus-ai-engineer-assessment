@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "support-ai"
+version = "1.1.0"
+description = "Production-oriented AI support triage and TAM account health tooling"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "google-genai>=1.0,<2",
+  "pydantic>=2.8,<3",
+  "python-dotenv>=1.0,<2",
+  "scikit-learn>=1.5,<2",
+  "uvicorn[standard]>=0.30,<1",
+]
+
+[project.scripts]
+support-ai = "support_ai.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+support_ai = ["prompts/*.md"]

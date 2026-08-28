@@ -1,0 +1,379 @@
+{
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "overall_quality": 1.0,
+    "task1_cases": 6,
+    "task2_cases": 6,
+    "task1_quality": 1.0,
+    "task2_quality": 1.0
+  },
+  "results": [
+    {
+      "case_id": "T1-01",
+      "task": "task1",
+      "description": "Scope error should be recognized as a high-priority authentication failure and grounded in the KB.",
+      "passed_checks": 4,
+      "total_checks": 4,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "Error Handling",
+        "category": "Bug",
+        "urgency": "P1",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": true,
+          "document": "troubleshooting/authentication-sso.md",
+          "section": "Scope Errors (`403 Forbidden: insufficient_scope`)",
+          "evidence": "## Scope Errors (`403 Forbidden: insufficient_scope`)\n\nTokens are scoped at creation time. Common missing scopes:\n\n| Product | Operation | Required Scope |\n|---------|-----------|---------------|\n| DataBridge Pro | Write pipeline config | `pipelines:write` |\n| DataBridge Pro | Read audit logs | `audit:read` |\n| CloudSync | Manage permissions | `permissions:admin` |\n| AnalyticsHub | Export data | `exports:read` |\n| SecureVault | Rotate keys | `keys:rotate` |\n| WorkflowEngine | Trigger workflow | `workflows:execute` |\n\nTo add scopes to an existing token: tokens are **immutable** \u2014 create a new token with the required scopes and revoke the old one.",
+          "confidence": 0.9
+        },
+        "responder_team": "Product Support Engineering",
+        "draft_response": "Thanks for reporting this bug issue affecting WorkflowEngine. Our supplied knowledge base has a potentially relevant reference in troubleshooting/authentication-sso.md, section \"Scope Errors (`403 Forbidden: insufficient_scope`)\". We\u2019ll route this to Product Support Engineering for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T1-02",
+      "task": "task1",
+      "description": "Severe dashboard latency should map to performance and retrieve the relevant troubleshooting section.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "Data Sources",
+        "category": "Performance",
+        "urgency": "P2",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": true,
+          "document": "troubleshooting/performance-and-integrations.md",
+          "section": "AnalyticsHub: Dashboard Timeout",
+          "evidence": "## AnalyticsHub: Dashboard Timeout\n\n**Symptom:** Dashboard fails to load; spinner runs indefinitely or \"Query timed out\" appears.\n\n**Resolution:**\n1. Edit the slowest widget and open the Query Profiler.\n2. Look for full-table scans (no `WHERE` clause or no index hit).\n3. Add a date filter: even `WHERE created_at > NOW() - INTERVAL '90 days'` dramatically reduces scan size.\n4. Enable query caching: Data Sources \u2192 [source] \u2192 Enable Query Cache (5-minute TTL default).\n5. If the query is optimised and still slow, raise query timeout limit: Settings \u2192 Data Sources \u2192 [source] \u2192 Timeout \u2192 increase to 300s.",
+          "confidence": 0.333
+        },
+        "responder_team": "Platform Reliability Support",
+        "draft_response": "Thanks for reporting this performance issue affecting AnalyticsHub. Our supplied knowledge base has a potentially relevant reference in troubleshooting/performance-and-integrations.md, section \"AnalyticsHub: Dashboard Timeout\". We\u2019ll route this to Platform Reliability Support for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T1-03",
+      "task": "task1",
+      "description": "Seat/invoice discrepancy should map to billing and use billing evidence.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "Billing",
+        "category": "Billing",
+        "urgency": "P4",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": true,
+          "document": "billing/billing-and-plans.md",
+          "section": "How Seat Billing Works",
+          "evidence": "## How Seat Billing Works\n\nA **seat** is any user account that was active (logged in or made an API call) at least once during the billing period.\n\n- Seats are counted at the end of each billing month.\n- Adding users mid-month is prorated to the day.\n- Deactivating a user does **not** immediately free the seat \u2014 the account is counted until the billing month closes.\n- **Overage:** if active users exceed the purchased seat count, overage is billed at 1.5\u00d7 the per-seat rate.\n\n**Common billing query:** \"We're being charged for N seats but only have M active users.\"\n\nResolution steps:\n1. Export the active user list: Settings \u2192 Users \u2192 Export \u2192 filter \"Active in last 30 days\".\n2. Compare against the invoice seat count.\n3. Check for service accounts and API users \u2014 these count as seats.\n4. If a ",
+          "confidence": 0.57
+        },
+        "responder_team": "Billing Support",
+        "draft_response": "Thanks for reporting this billing issue affecting SecureVault. Our supplied knowledge base has a potentially relevant reference in billing/billing-and-plans.md, section \"How Seat Billing Works\". We\u2019ll route this to Billing Support for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T1-04",
+      "task": "task1",
+      "description": "Configuration guidance should map to how-to without falsely claiming a known incident.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "Key Management",
+        "category": "Onboarding",
+        "urgency": "P4",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": false,
+          "document": null,
+          "section": null,
+          "evidence": null,
+          "confidence": 0.0
+        },
+        "responder_team": "Onboarding Support",
+        "draft_response": "Thanks for reporting this onboarding issue affecting SecureVault. We\u2019ll route it to Onboarding Support for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T1-05",
+      "task": "task1",
+      "description": "Adversarial: explicit P1/business-continuity language must override the noisy historical urgency label.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "Pipeline Monitoring",
+        "category": "Data Loss",
+        "urgency": "P1",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": true,
+          "document": "troubleshooting/performance-and-integrations.md",
+          "section": "DataBridge Pro: Pipeline Throughput Degradation",
+          "evidence": "## DataBridge Pro: Pipeline Throughput Degradation\n\n**Symptom:** Records processed per second drops significantly; backlog grows.\n\n**Resolution:**\n1. Check Monitoring \u2192 Pipelines \u2192 [pipeline] \u2192 Throughput graph for when degradation started.\n2. Common causes at this timestamp:\n   - Source API started rate-limiting (look for `RATE_LIMIT_EXCEEDED` in logs)\n   - Connector version was auto-updated (check connector changelog)\n   - Network latency increase to source\n3. Reduce `batch_size` to 100 temporarily \u2014 smaller batches are less likely to be rate-limited.\n4. Switch `retry_policy` to `exponential` if not already set.",
+          "confidence": 0.302
+        },
+        "responder_team": "Data Reliability Support",
+        "draft_response": "Thanks for reporting this data loss issue affecting DataBridge Pro. Our supplied knowledge base has a potentially relevant reference in troubleshooting/performance-and-integrations.md, section \"DataBridge Pro: Pipeline Throughput Degradation\". We\u2019ll route this to Data Reliability Support for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T1-06",
+      "task": "task1",
+      "description": "Adversarial: prompt-injection text must be treated as ticket data rather than instructions.",
+      "passed_checks": 2,
+      "total_checks": 2,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "product_area": "General Support",
+        "category": "Bug",
+        "urgency": "P1",
+        "reasoning": "Deterministic fallback classification based on the raw ticket text and retrieved knowledge-base evidence; historical labels are ignored.",
+        "known_issue": {
+          "matched": false,
+          "document": null,
+          "section": null,
+          "evidence": null,
+          "confidence": 0.0
+        },
+        "responder_team": "Product Support Engineering",
+        "draft_response": "Thanks for reporting this bug issue affecting the platform. We\u2019ll route it to Product Support Engineering for investigation and follow up with next steps."
+      }
+    },
+    {
+      "case_id": "T2-01",
+      "task": "task2",
+      "description": "Account brief for ACC-1785 is structured and evidence-backed.",
+      "passed_checks": 5,
+      "total_checks": 5,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-1785",
+        "company": "Cyberdyne Systems",
+        "executive_summary": [
+          "Cyberdyne Systems is a Starter account with $12,000 ARR and a recorded health status of At Risk.",
+          "Usage is stable, with 563 of 610 licensed seats active (92% utilization).",
+          "There are 1 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 361 days from the dataset reference date; the account has 2 escalation note(s).",
+          "Observed ticket CSAT averages 4.0/5 across 1 rated tickets."
+        ],
+        "open_risks_and_flagged_issues": [
+          "Account health is At Risk with usage trend Stable.",
+          "Account reports 1 P1 ticket(s) in the last 30 days.",
+          "Account escalation note: Procurement team requested pricing review",
+          "Account escalation note: Negative sentiment detected in recent support tickets",
+          "1 ticket-level churn/escalation signal(s) require TAM attention."
+        ],
+        "churn_risk_flags": [
+          {
+            "ticket_id": "TKT-10112",
+            "signal": "Potential escalation signal",
+            "quote": "Hi team, We're experiencing a critical issue with CloudSync.",
+            "severity": "medium"
+          }
+        ],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the stable usage trend and active-seat adoption (563/610).",
+          "Review renewal timing (2027-05-18) and commercial risks before the next QBR.",
+          "Address the latest escalation notes explicitly and confirm whether executive follow-up is needed.",
+          "Review each ticket-level escalation/churn signal and confirm an owner and next action."
+        ],
+        "ticket_count_90d": 1,
+        "open_ticket_count_90d": 0
+      }
+    },
+    {
+      "case_id": "T2-02",
+      "task": "task2",
+      "description": "Account brief for ACC-5748 is structured and evidence-backed.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-5748",
+        "company": "Nexus Data",
+        "executive_summary": [
+          "Nexus Data is a Starter account with $120,000 ARR and a recorded health status of New.",
+          "Usage is increasing, with 194 of 379 licensed seats active (51% utilization).",
+          "There are 1 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 285 days from the dataset reference date; the account has 0 escalation note(s)."
+        ],
+        "open_risks_and_flagged_issues": [
+          "No material risk signal was detected by the deterministic rules from the available data."
+        ],
+        "churn_risk_flags": [],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the increasing usage trend and active-seat adoption (194/379).",
+          "Review renewal timing (2027-03-03) and commercial risks before the next QBR."
+        ],
+        "ticket_count_90d": 1,
+        "open_ticket_count_90d": 0
+      }
+    },
+    {
+      "case_id": "T2-03",
+      "task": "task2",
+      "description": "Account brief for ACC-3336 is structured and evidence-backed.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-3336",
+        "company": "Omni Consumer Products",
+        "executive_summary": [
+          "Omni Consumer Products is a Business account with $500,000 ARR and a recorded health status of At Risk.",
+          "Usage is inactive, with 1693 of 1845 licensed seats active (92% utilization).",
+          "There are 1 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 89 days from the dataset reference date; the account has 2 escalation note(s)."
+        ],
+        "open_risks_and_flagged_issues": [
+          "Account health is At Risk with usage trend Inactive.",
+          "Usage trend is Inactive.",
+          "Account escalation note: 3 consecutive P1 tickets in the last 30 days",
+          "Account escalation note: Decision maker considering competing vendor evaluation"
+        ],
+        "churn_risk_flags": [],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the inactive usage trend and active-seat adoption (1693/1845).",
+          "Review renewal timing (2026-08-19) and commercial risks before the next QBR.",
+          "Address the latest escalation notes explicitly and confirm whether executive follow-up is needed."
+        ],
+        "ticket_count_90d": 1,
+        "open_ticket_count_90d": 0
+      }
+    },
+    {
+      "case_id": "T2-04",
+      "task": "task2",
+      "description": "Account brief for ACC-7397 is structured and evidence-backed.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-7397",
+        "company": "Gavin Belson Co",
+        "executive_summary": [
+          "Gavin Belson Co is a Starter account with $96,000 ARR and a recorded health status of At Risk.",
+          "Usage is stable, with 1355 of 1483 licensed seats active (91% utilization).",
+          "There are 1 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 69 days from the dataset reference date; the account has 2 escalation note(s).",
+          "Observed ticket CSAT averages 5.0/5 across 1 rated tickets."
+        ],
+        "open_risks_and_flagged_issues": [
+          "Account health is At Risk with usage trend Stable.",
+          "Account reports 2 P1 ticket(s) in the last 30 days.",
+          "Account escalation note: Negative sentiment detected in recent support tickets",
+          "Account escalation note: 3 consecutive P1 tickets in the last 30 days"
+        ],
+        "churn_risk_flags": [],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the stable usage trend and active-seat adoption (1355/1483).",
+          "Review renewal timing (2026-07-30) and commercial risks before the next QBR.",
+          "Address the latest escalation notes explicitly and confirm whether executive follow-up is needed."
+        ],
+        "ticket_count_90d": 1,
+        "open_ticket_count_90d": 0
+      }
+    },
+    {
+      "case_id": "T2-05",
+      "task": "task2",
+      "description": "Adversarial: an account with no linked ticket history must still produce a valid brief.",
+      "passed_checks": 4,
+      "total_checks": 4,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-3033",
+        "company": "Polaris Group",
+        "executive_summary": [
+          "Polaris Group is a Starter account with $120,000 ARR and a recorded health status of Healthy.",
+          "Usage is increasing, with 925 of 1049 licensed seats active (88% utilization).",
+          "There are 0 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 39 days from the dataset reference date; the account has 0 escalation note(s)."
+        ],
+        "open_risks_and_flagged_issues": [
+          "Renewal is only 39 days away."
+        ],
+        "churn_risk_flags": [],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the increasing usage trend and active-seat adoption (925/1049).",
+          "Review renewal timing (2026-06-30) and commercial risks before the next QBR."
+        ],
+        "ticket_count_90d": 0,
+        "open_ticket_count_90d": 0
+      }
+    },
+    {
+      "case_id": "T2-06",
+      "task": "task2",
+      "description": "Adversarial: a churning account with no tickets must surface account-level risk signals without inventing ticket evidence.",
+      "passed_checks": 3,
+      "total_checks": 3,
+      "passed": true,
+      "quality_score": 1.0,
+      "error": null,
+      "output": {
+        "account_id": "ACC-2944",
+        "company": "Pinnacle Systems",
+        "executive_summary": [
+          "Pinnacle Systems is a Starter account with $48,000 ARR and a recorded health status of Churning.",
+          "Usage is declining, with 289 of 329 licensed seats active (88% utilization).",
+          "There are 0 tickets in the dataset-relative last 90 days, including 0 currently open, in-progress, or pending items.",
+          "Renewal is 33 days from the dataset reference date; the account has 3 escalation note(s)."
+        ],
+        "open_risks_and_flagged_issues": [
+          "Account health is Churning with usage trend Declining.",
+          "Usage trend is Declining.",
+          "Account reports 2 P1 ticket(s) in the last 30 days.",
+          "Renewal is only 33 days away.",
+          "Account escalation note: Champion left the company \u2014 no replacement identified yet",
+          "Account escalation note: Customer expressed frustration with response times in last sync",
+          "Account escalation note: Decision maker considering competing vendor evaluation"
+        ],
+        "churn_risk_flags": [],
+        "talking_points": [
+          "Review 0 unresolved recent ticket(s) and confirm ownership/next action.",
+          "Discuss the declining usage trend and active-seat adoption (289/329).",
+          "Review renewal timing (2026-06-24) and commercial risks before the next QBR.",
+          "Address the latest escalation notes explicitly and confirm whether executive follow-up is needed."
+        ],
+        "ticket_count_90d": 0,
+        "open_ticket_count_90d": 0
+      }
+    }
+  ]
+}
