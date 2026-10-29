@@ -1,8 +1,8 @@
 # Support AI — Intelligent Ticket Triage & TAM Account Health
 
-> A production-oriented AI support system for intelligent support-ticket triage and Technical Account Manager (TAM) account health analysis.
+> An AI support prototype for support-ticket triage and Technical Account Manager (TAM) account health analysis.
 
-Built for the **Zycus AI Engineer Assessment**, this project combines knowledge-base retrieval, structured LLM generation, deterministic business logic, schema validation, automated evaluation, and production-oriented engineering practices.
+Built for the **Zycus AI Engineer Assessment**, this project combines knowledge-base retrieval, structured LLM generation, deterministic business logic, schema validation, automated evaluation, tests and CI.
 
 The core design principle is simple:
 
@@ -374,6 +374,12 @@ The evaluation includes:
 - Escalation signals
 - Renewal risk
 - Missing and no-ticket scenarios
+
+> **Scope of the evaluation.** `run_evaluation()` calls `triage_ticket()` without an LLM client,
+> so every Task 1 case is scored on the **deterministic fallback** path. The committed
+> `eval_report.json` (12/12 checks passed) therefore measures the fallback rules and the
+> Task 2 account briefs, not Gemini output quality. Twelve cases are a regression check,
+> not a quality benchmark.
 
 Each evaluation produces:
 
